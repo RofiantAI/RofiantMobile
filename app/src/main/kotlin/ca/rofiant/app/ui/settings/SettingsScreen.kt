@@ -13,7 +13,9 @@ import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import ca.rofiant.app.data.model.AppSettings
 import ca.rofiant.app.data.model.AppTheme
@@ -57,7 +60,12 @@ fun SettingsScreen(
     onClearConversations: () -> Unit,
     onSelectModel: (String) -> Unit,
     onSelectEffort: (String) -> Unit,
+    onHideBetaNoticeChange: (Boolean) -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val versionName = remember {
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull()
+    }
     var showClearConfirm by remember { mutableStateOf(false) }
     var showModelPicker by remember { mutableStateOf(false) }
     var appearanceExpanded by remember { mutableStateOf(false) }
@@ -114,6 +122,16 @@ fun SettingsScreen(
                         Switch(checked = settings.showTimestamps, onCheckedChange = onShowTimestampsChange)
                     },
                     onClick = { onShowTimestampsChange(!settings.showTimestamps) },
+                )
+                RowDivider()
+                SettingsRow(
+                    icon = Icons.Filled.NewReleases,
+                    label = "Hide beta notice",
+                    value = "The \"you're using a beta\" popup on launch",
+                    trailing = {
+                        Switch(checked = settings.hideBetaNotice, onCheckedChange = onHideBetaNoticeChange)
+                    },
+                    onClick = { onHideBetaNoticeChange(!settings.hideBetaNotice) },
                 )
             }
 
@@ -179,6 +197,13 @@ fun SettingsScreen(
                     labelColor = MaterialTheme.colorScheme.error,
                     onClick = { showClearConfirm = true },
                 )
+            }
+
+            if (versionName != null) {
+                SectionHeader("About")
+                SettingsGroup {
+                    SettingsRow(icon = Icons.Filled.Info, label = "Version", value = versionName, onClick = {})
+                }
             }
 
             Text(

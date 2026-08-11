@@ -11,20 +11,27 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.IosShare
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Settings
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import ca.rofiant.app.data.auth.AuthConfig
 import ca.rofiant.app.data.auth.AuthState
+import ca.rofiant.app.data.auth.LinkedDevice
 import ca.rofiant.app.data.model.Conversation
 import java.io.File
 
@@ -57,9 +65,13 @@ fun AccountScreen(
     onOpenSettings: () -> Unit,
     onSignOut: () -> Unit,
     onSignIn: () -> Unit,
-    onSaveProfile: (displayName: String) -> Unit,
-    onAvatarPicked: (jpegBytes: ByteArray) -> Unit,
+    onSaveProfile: (displayName: String, onResult: (success: Boolean, errorMessage: String?) -> Unit) -> Unit,
+    onAvatarPicked: (jpegBytes: ByteArray, onResult: (success: Boolean, errorMessage: String?) -> Unit) -> Unit,
     onLinkDevice: (code: String, onResult: (success: Boolean, errorMessage: String?) -> Unit) -> Unit,
+    linkedDevices: List<LinkedDevice> = emptyList(),
+    onLoadLinkedDevices: () -> Unit = {},
+    onUnlinkDevice: (code: String, onResult: (success: Boolean, errorMessage: String?) -> Unit) -> Unit = { _, _ -> },
+    onChangePassword: (newPassword: String, onResult: (success: Boolean, errorMessage: String?) -> Unit) -> Unit = { _, _ -> },
 ) {
     val context = LocalContext.current
     val user = (authState as? AuthState.SignedIn)?.session?.user
@@ -70,6 +82,10 @@ fun AccountScreen(
     val avatarLabel = user?.displayName?.take(1)?.uppercase()?.takeIf { it.isNotBlank() }
         ?: email?.take(1)?.uppercase() ?: if (isAnonymous) "G" else null
     var showEditSheet by remember { mutableStateOf(false) }
+    var showChangePassword by remember { mutableStateOf(false) }
+    var deviceToUnlink by remember { mutableStateOf<LinkedDevice?>(null) }
+
+    LaunchedEffect(Unit) { onLoadLinkedDevices() }
 
     Scaffold(
         topBar = {
@@ -119,6 +135,14 @@ fun AccountScreen(
                     )
                     RowDivider()
                 }
+                if (!isAnonymous && authState is AuthState.SignedIn) {
+                    SettingsRow(
+                        icon = Icons.Filled.Lock,
+                        label = "Change password",
+                        onClick = { showChangePassword = true },
+                    )
+                    RowDivider()
+                }
                 SettingsRow(icon = Icons.Filled.Settings, label = "Settings", onClick = onOpenSettings)
             }
 
@@ -144,6 +168,15 @@ fun AccountScreen(
                             }
                     },
                 )
+                linkedDevices.forEach { device ->
+                    RowDivider()
+                    SettingsRow(
+                        icon = Icons.Filled.Devices,
+                        label = device.label,
+                        trailing = { TextButton(onClick = { deviceToUnlink = device }) { Text("Unlink") } },
+                        onClick = {},
+                    )
+                }
             }
 
             SectionHeader("Data")
@@ -159,7 +192,12 @@ fun AccountScreen(
             SectionHeader("Session")
             SettingsGroup {
                 if (authState is AuthState.SignedIn) {
-                    SettingsRow(icon = Icons.AutoMirrored.Filled.Logout, label = "Sign out", onClick = onSignOut)
+                    SettingsRow(
+                        icon = Icons.AutoMirrored.Filled.Logout,
+                        label = "Sign out",
+                        labelColor = MaterialTheme.colorScheme.error,
+                        onClick = onSignOut,
+                    )
                 } else {
                     SettingsRow(icon = Icons.AutoMirrored.Filled.Login, label = "Sign in", onClick = onSignIn)
                 }
@@ -167,16 +205,105 @@ fun AccountScreen(
         }
     }
 
+    if (showChangePassword) {
+        ChangePasswordDialog(
+            onDismiss = { showChangePassword = false },
+            onSave = { newPassword ->
+                showChangePassword = false
+                onChangePassword(newPassword) { success, errorMessage ->
+                    val message = if (success) "Password updated" else (errorMessage ?: "Couldn't update password")
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
+            },
+        )
+    }
+
+    deviceToUnlink?.let { device ->
+        AlertDialog(
+            onDismissRequest = { deviceToUnlink = null },
+            title = { Text("Unlink this device?") },
+            text = { Text("${device.label} will be signed out.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    deviceToUnlink = null
+                    onUnlinkDevice(device.code) { success, errorMessage ->
+                        val message = if (success) "Device unlinked" else (errorMessage ?: "Couldn't unlink device")
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                    }
+                }) { Text("Unlink") }
+            },
+            dismissButton = {
+                TextButton(onClick = { deviceToUnlink = null }) { Text("Cancel") }
+            },
+        )
+    }
+
     if (showEditSheet) {
         ProfileEditSheet(
             initialDisplayName = user?.displayName ?: "",
             avatarUrl = user?.avatarUrl,
             avatarLabel = avatarLabel,
-            onSave = onSaveProfile,
-            onAvatarPicked = onAvatarPicked,
+            onSave = { name ->
+                onSaveProfile(name) { success, errorMessage ->
+                    if (!success) Toast.makeText(context, errorMessage ?: "Couldn't save name", Toast.LENGTH_SHORT).show()
+                }
+            },
+            onAvatarPicked = { jpegBytes ->
+                onAvatarPicked(jpegBytes) { success, errorMessage ->
+                    if (!success) Toast.makeText(context, errorMessage ?: "Couldn't upload photo", Toast.LENGTH_SHORT).show()
+                }
+            },
             onDismiss = { showEditSheet = false },
         )
     }
+}
+
+@Composable
+private fun ChangePasswordDialog(onDismiss: () -> Unit, onSave: (newPassword: String) -> Unit) {
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    val mismatch = confirmPassword.isNotEmpty() && password != confirmPassword
+    val valid = password.length >= 6 && password == confirmPassword
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Change password") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("New password") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Confirm password") },
+                    singleLine = true,
+                    isError = mismatch,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                )
+                if (mismatch) {
+                    Text(
+                        "Passwords don't match",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = valid, onClick = { onSave(password) }) { Text("Save") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        },
+    )
 }
 
 // Matches rofiant-desktop's LinkDeviceDialog.tsx qrPayload() — no URL scheme,

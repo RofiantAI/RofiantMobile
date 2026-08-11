@@ -9,4 +9,5 @@ data class AppSettings(
     val contextLimit: Int = 20,
     val theme: AppTheme = AppTheme.system,
     val showTimestamps: Boolean = false,
+    val hideBetaNotice: Boolean = false,
 )

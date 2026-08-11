@@ -40,6 +40,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 // Shared building blocks for AccountScreen and SettingsScreen — grouped
 // rounded-row sections, matching the ChatGPT app's settings row style.
@@ -188,9 +190,11 @@ fun ProfileAvatar(
 internal fun rememberAvatarBitmap(url: String?): android.graphics.Bitmap? {
     val state = produceState<android.graphics.Bitmap?>(initialValue = null, url) {
         value = url?.let {
-            runCatching {
-                java.net.URL(it).openStream().use { stream -> BitmapFactory.decodeStream(stream) }
-            }.getOrNull()
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    java.net.URL(it).openStream().use { stream -> BitmapFactory.decodeStream(stream) }
+                }.getOrNull()
+            }
         }
     }
     return state.value

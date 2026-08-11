@@ -24,6 +24,7 @@ class SettingsRepository(private val context: Context) {
         val CONTEXT_LIMIT = intPreferencesKey("context_limit")
         val THEME = stringPreferencesKey("theme")
         val SHOW_TIMESTAMPS = booleanPreferencesKey("show_timestamps")
+        val HIDE_BETA_NOTICE = booleanPreferencesKey("hide_beta_notice")
     }
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { prefs ->
@@ -34,6 +35,7 @@ class SettingsRepository(private val context: Context) {
             contextLimit = prefs[Keys.CONTEXT_LIMIT] ?: 20,
             theme = prefs[Keys.THEME]?.let { runCatching { AppTheme.valueOf(it) }.getOrNull() } ?: AppTheme.system,
             showTimestamps = prefs[Keys.SHOW_TIMESTAMPS] ?: false,
+            hideBetaNotice = prefs[Keys.HIDE_BETA_NOTICE] ?: false,
         )
     }
 
@@ -45,4 +47,6 @@ class SettingsRepository(private val context: Context) {
     suspend fun setTheme(theme: AppTheme) = context.settingsDataStore.edit { it[Keys.THEME] = theme.name }
     suspend fun setShowTimestamps(show: Boolean) =
         context.settingsDataStore.edit { it[Keys.SHOW_TIMESTAMPS] = show }
+    suspend fun setHideBetaNotice(hide: Boolean) =
+        context.settingsDataStore.edit { it[Keys.HIDE_BETA_NOTICE] = hide }
 }

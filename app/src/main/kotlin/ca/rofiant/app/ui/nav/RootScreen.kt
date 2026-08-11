@@ -1,7 +1,10 @@
 package ca.rofiant.app.ui.nav
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalNavigationDrawer
@@ -15,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -68,13 +72,16 @@ private fun MainApp(viewModel: AppViewModel) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    // Fresh per entry into MainApp (i.e. once per sign-in), not persisted —
-    // dismissing it doesn't suppress it on the next sign-in/app launch.
-    var showBetaDialog by remember { mutableStateOf(true) }
+    // Dismissed for this composition until "don't show again" is checked,
+    // which persists via settings.hideBetaNotice.
+    var betaDialogDismissed by remember { mutableStateOf(false) }
+    var hideBetaNoticeChecked by remember { mutableStateOf(false) }
 
     val conversations by viewModel.conversations.collectAsStateWithLifecycle()
     val activeId by viewModel.activeId.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val linkedDevices by viewModel.linkedDevices.collectAsStateWithLifecycle()
+    val showBetaDialog = !betaDialogDismissed && !settings.hideBetaNotice
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     val isOnline by rememberIsOnline()
 
@@ -122,9 +129,13 @@ private fun MainApp(viewModel: AppViewModel) {
                     onOpenSettings = { navController.navigate(ROUTE_SETTINGS) },
                     onSignOut = viewModel::signOut,
                     onSignIn = viewModel::signOut,
-                    onSaveProfile = viewModel::setDisplayName,
-                    onAvatarPicked = viewModel::uploadAvatar,
+                    onSaveProfile = { name, onResult -> viewModel.setDisplayName(name, onResult) },
+                    onAvatarPicked = { jpegBytes, onResult -> viewModel.uploadAvatar(jpegBytes, onResult) },
                     onLinkDevice = { code, onResult -> viewModel.linkDevice(code, onResult) },
+                    linkedDevices = linkedDevices,
+                    onLoadLinkedDevices = viewModel::loadLinkedDevices,
+                    onUnlinkDevice = { code, onResult -> viewModel.unlinkDevice(code, onResult) },
+                    onChangePassword = { newPassword, onResult -> viewModel.setPassword(newPassword, onResult) },
                 )
             }
             composable(ROUTE_SETTINGS) {
@@ -138,6 +149,7 @@ private fun MainApp(viewModel: AppViewModel) {
                     onClearConversations = viewModel::clearAllConversations,
                     onSelectModel = viewModel::setModel,
                     onSelectEffort = viewModel::setEffort,
+                    onHideBetaNoticeChange = viewModel::setHideBetaNotice,
                 )
             }
         }
@@ -145,11 +157,25 @@ private fun MainApp(viewModel: AppViewModel) {
 
     if (showBetaDialog) {
         AlertDialog(
-            onDismissRequest = { showBetaDialog = false },
+            onDismissRequest = {
+                betaDialogDismissed = true
+                if (hideBetaNoticeChecked) viewModel.setHideBetaNotice(true)
+            },
             title = { Text("You're using a beta") },
-            text = { Text("Rofiant for Android is in beta — some things may be rough around the edges. Thanks for trying it out.") },
+            text = {
+                Column {
+                    Text("Rofiant for Android is in beta — some things may be rough around the edges. Thanks for trying it out.")
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = hideBetaNoticeChecked, onCheckedChange = { hideBetaNoticeChecked = it })
+                        Text("Don't show this again")
+                    }
+                }
+            },
             confirmButton = {
-                TextButton(onClick = { showBetaDialog = false }) { Text("Got it") }
+                TextButton(onClick = {
+                    betaDialogDismissed = true
+                    if (hideBetaNoticeChecked) viewModel.setHideBetaNotice(true)
+                }) { Text("Got it") }
             },
         )
     }

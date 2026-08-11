@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import ca.rofiant.app.AppContainer
 import ca.rofiant.app.data.auth.AuthState
+import ca.rofiant.app.data.auth.LinkedDevice
 import ca.rofiant.app.data.model.AppSettings
 import ca.rofiant.app.data.model.ChatMessage
 import ca.rofiant.app.data.model.ChatModels
@@ -39,6 +40,9 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
 
     private val _conversations = MutableStateFlow<List<Conversation>>(emptyList())
     val conversations: StateFlow<List<Conversation>> = _conversations.asStateFlow()
+
+    private val _linkedDevices = MutableStateFlow<List<LinkedDevice>>(emptyList())
+    val linkedDevices: StateFlow<List<LinkedDevice>> = _linkedDevices.asStateFlow()
 
     private val _activeId = MutableStateFlow<String?>(null)
     val activeId: StateFlow<String?> = _activeId.asStateFlow()
@@ -347,18 +351,67 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
 
     fun setTheme(theme: ca.rofiant.app.data.model.AppTheme) = viewModelScope.launch { settingsRepo.setTheme(theme) }
     fun setShowTimestamps(show: Boolean) = viewModelScope.launch { settingsRepo.setShowTimestamps(show) }
+    fun setHideBetaNotice(hide: Boolean) = viewModelScope.launch { settingsRepo.setHideBetaNotice(hide) }
     fun setCustomInstructions(text: String) = viewModelScope.launch { settingsRepo.setCustomInstructions(text) }
     fun setContextLimit(limit: Int) = viewModelScope.launch { settingsRepo.setContextLimit(limit) }
     fun setModel(id: String) = viewModelScope.launch { settingsRepo.setModel(id) }
     fun setEffort(level: String) = viewModelScope.launch { settingsRepo.setEffort(level) }
 
-    fun setDisplayName(name: String) = runAuthAction { authRepo.updateProfile(displayName = name) }
-    fun uploadAvatar(jpegBytes: ByteArray) = runAuthAction { authRepo.uploadAvatar(jpegBytes) }
+    /** Scoped result callback, matching setPassword/linkDevice — this screen doesn't observe authError's shared banner. */
+    fun setDisplayName(name: String, onResult: (success: Boolean, errorMessage: String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                authRepo.updateProfile(displayName = name)
+                onResult(true, null)
+            } catch (e: Exception) {
+                onResult(false, e.message ?: "Something went wrong")
+            }
+        }
+    }
+    /** Scoped result callback, matching linkDevice/unlinkDevice — this is a one-off form action with its own error display, not authError's shared banner. */
+    fun setPassword(newPassword: String, onResult: (success: Boolean, errorMessage: String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                authRepo.updatePassword(newPassword)
+                onResult(true, null)
+            } catch (e: Exception) {
+                onResult(false, e.message ?: "Something went wrong")
+            }
+        }
+    }
+    fun uploadAvatar(jpegBytes: ByteArray, onResult: (success: Boolean, errorMessage: String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                authRepo.uploadAvatar(jpegBytes)
+                onResult(true, null)
+            } catch (e: Exception) {
+                onResult(false, e.message ?: "Something went wrong")
+            }
+        }
+    }
     /** Scoped result callback rather than runAuthAction's shared authError banner — this is a one-off scan action with its own toast, not a form field. */
     fun linkDevice(code: String, onResult: (success: Boolean, errorMessage: String?) -> Unit) {
         viewModelScope.launch {
             try {
                 authRepo.linkDevice(code)
+                onResult(true, null)
+            } catch (e: Exception) {
+                onResult(false, e.message ?: "Something went wrong")
+            }
+        }
+    }
+
+    fun loadLinkedDevices() {
+        viewModelScope.launch {
+            runCatching { authRepo.listLinkedDevices() }.onSuccess { _linkedDevices.value = it }
+        }
+    }
+
+    fun unlinkDevice(code: String, onResult: (success: Boolean, errorMessage: String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                authRepo.unlinkDevice(code)
+                _linkedDevices.value = _linkedDevices.value.filterNot { it.code == code }
                 onResult(true, null)
             } catch (e: Exception) {
                 onResult(false, e.message ?: "Something went wrong")

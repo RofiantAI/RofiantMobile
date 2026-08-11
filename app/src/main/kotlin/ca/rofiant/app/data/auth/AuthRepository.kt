@@ -63,8 +63,9 @@ class AuthRepository(
 
     /** Updates the signed-in user's name/avatar on the backend and refreshes the in-memory session so the UI reflects it immediately. */
     suspend fun updateProfile(displayName: String? = null, avatarUrl: String? = null) {
+        val token = validAccessToken() ?: throw AuthException("Not signed in")
         val session = storage.load() ?: throw AuthException("Not signed in")
-        val user = api.updateProfile(session.accessToken, displayName, avatarUrl)
+        val user = api.updateProfile(token, displayName, avatarUrl)
         val updated = session.copy(user = user)
         storage.save(updated)
         _state.value = AuthState.SignedIn(updated)
@@ -72,15 +73,33 @@ class AuthRepository(
 
     /** Uploads the picked photo and points user_metadata.custom_avatar_url at it — mirrors rofiant-web's upload-then-updateUser flow. */
     suspend fun uploadAvatar(jpegBytes: ByteArray) {
+        val token = validAccessToken() ?: throw AuthException("Not signed in")
         val session = storage.load() ?: throw AuthException("Not signed in")
-        val url = api.uploadAvatar(session.accessToken, session.user.id, jpegBytes)
+        val url = api.uploadAvatar(token, session.user.id, jpegBytes)
         updateProfile(avatarUrl = url)
     }
 
     /** Approves a desktop's "link a device" QR code, signing that desktop into this same account. */
     suspend fun linkDevice(code: String) {
-        val session = storage.load() ?: throw AuthException("Not signed in")
-        api.linkDevice(session.accessToken, code)
+        val token = validAccessToken() ?: throw AuthException("Not signed in")
+        api.linkDevice(token, code)
+    }
+
+    suspend fun listLinkedDevices(): List<LinkedDevice> {
+        val token = validAccessToken() ?: throw AuthException("Not signed in")
+        return api.listLinkedDevices(token)
+    }
+
+    /** Signs that desktop out on its next token refresh — see link-device's "revoke" action. */
+    suspend fun unlinkDevice(code: String) {
+        val token = validAccessToken() ?: throw AuthException("Not signed in")
+        api.unlinkDevice(token, code)
+    }
+
+    /** Changes the password for an already-signed-in user (vs. confirmPasswordReset's logged-out recovery flow). */
+    suspend fun updatePassword(newPassword: String) {
+        val token = validAccessToken() ?: throw AuthException("Not signed in")
+        api.updatePassword(token, newPassword)
     }
 
     suspend fun requestPasswordReset(email: String) = api.requestPasswordReset(email)

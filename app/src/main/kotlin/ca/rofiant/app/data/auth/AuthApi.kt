@@ -29,6 +29,12 @@ private data class GoTrueUser(
 )
 
 @Serializable
+private data class LinkedDeviceRow(val code: String, val label: String? = null, val created_at: String)
+
+@Serializable
+private data class ListDevicesResponse(val devices: List<LinkedDeviceRow>)
+
+@Serializable
 private data class TokenResponse(
     val access_token: String,
     val refresh_token: String,
@@ -175,6 +181,39 @@ class AuthApi(private val client: OkHttpClient) {
         val body = json.encodeToString(
             JsonObject.serializer(),
             JsonObject(mapOf("action" to JsonPrimitive("approve"), "code" to JsonPrimitive(code))),
+        )
+        execute(
+            Request.Builder()
+                .url("${AuthConfig.FUNCTIONS_BASE}/link-device")
+                .header("apikey", AuthConfig.SUPABASE_ANON_KEY)
+                .header("Authorization", "Bearer $accessToken")
+                .post(body.toRequestBody(jsonMedia))
+                .build()
+        )
+    }
+
+    suspend fun listLinkedDevices(accessToken: String): List<LinkedDevice> {
+        val body = json.encodeToString(
+            JsonObject.serializer(),
+            JsonObject(mapOf("action" to JsonPrimitive("list"))),
+        )
+        val response = execute(
+            Request.Builder()
+                .url("${AuthConfig.FUNCTIONS_BASE}/link-device")
+                .header("apikey", AuthConfig.SUPABASE_ANON_KEY)
+                .header("Authorization", "Bearer $accessToken")
+                .post(body.toRequestBody(jsonMedia))
+                .build()
+        )
+        return json.decodeFromString(ListDevicesResponse.serializer(), response).devices.map {
+            LinkedDevice(code = it.code, label = it.label ?: "Unknown device", createdAt = it.created_at)
+        }
+    }
+
+    suspend fun unlinkDevice(accessToken: String, code: String) {
+        val body = json.encodeToString(
+            JsonObject.serializer(),
+            JsonObject(mapOf("action" to JsonPrimitive("revoke"), "code" to JsonPrimitive(code))),
         )
         execute(
             Request.Builder()

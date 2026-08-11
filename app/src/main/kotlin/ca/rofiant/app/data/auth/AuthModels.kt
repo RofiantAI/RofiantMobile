@@ -22,6 +22,9 @@ data class AuthSession(
     val user: AuthUser,
 )
 
+@Serializable
+data class LinkedDevice(val code: String, val label: String, val createdAt: String)
+
 sealed interface AuthState {
     data object Loading : AuthState
     data object SignedOut : AuthState
