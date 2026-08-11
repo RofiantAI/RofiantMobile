@@ -1,5 +1,6 @@
 package ca.rofiant.app.data.remote
 
+import android.util.Log
 import ca.rofiant.app.data.auth.AuthConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -142,29 +143,43 @@ class ChatApi(private val client: OkHttpClient) {
         ).toString()
         val request = Request.Builder()
             .url("${AuthConfig.FUNCTIONS_BASE}/$edgeFunction")
+            .header("apikey", AuthConfig.SUPABASE_ANON_KEY)
             .header("Authorization", "Bearer $accessToken")
+            .header("Accept", "text/event-stream, application/json")
             .post(body.toRequestBody(jsonMedia))
             .build()
 
         val call = streamingClient.newCall(request)
 
         launch(Dispatchers.IO) {
+            var streamErrored = false
             try {
                 call.execute().use { response ->
+                    Log.d(TAG, "Chat request to $edgeFunction returned HTTP ${response.code}")
                     if (!response.isSuccessful) {
                         val text = response.body?.string()?.takeIf { it.isNotBlank() }
+                        streamErrored = true
                         trySend(ChatStreamEvent.Error(text ?: "Request failed (${response.code})"))
                         return@use
                     }
                     val source = response.body?.source() ?: run {
+                        streamErrored = true
                         trySend(ChatStreamEvent.Error("Empty response"))
                         return@use
                     }
 
                     fun handleDataPayload(data: String) {
                         if (data.isEmpty() || data == "[DONE]") return
-                        val chunk = runCatching { json.decodeFromString(ChatChunk.serializer(), data) }.getOrNull()
-                            ?: return
+                        val chunk = runCatching { json.decodeFromString(ChatChunk.serializer(), data) }
+                            .getOrElse {
+                                // Payload wasn't a ChatChunk at all — e.g. an error object
+                                // ({"error": "..."}) the proxy sent with a 200 status. Surface
+                                // it instead of silently dropping it, which used to end the
+                                // stream with an empty buffer and a generic "No response received."
+                                streamErrored = true
+                                trySend(ChatStreamEvent.Error(data.take(300)))
+                                return
+                            }
                         val content = chunk.choices.firstOrNull()?.delta?.content
                             ?: chunk.choices.firstOrNull()?.message?.content
                         if (!content.isNullOrEmpty()) trySend(ChatStreamEvent.Delta(content))
@@ -173,6 +188,7 @@ class ChatApi(private val client: OkHttpClient) {
 
                     val firstLine = if (!source.exhausted()) source.readUtf8Line() else null
                     if (firstLine == null) {
+                        streamErrored = true
                         trySend(ChatStreamEvent.Error("Empty response"))
                     } else if (firstLine.startsWith("data:")) {
                         // Real SSE framing.
@@ -190,10 +206,19 @@ class ChatApi(private val client: OkHttpClient) {
                         val rest = if (!source.exhausted()) source.readUtf8() else ""
                         handleDataPayload(firstLine + rest)
                     }
-                    trySend(ChatStreamEvent.Done)
+                    // An error is terminal. Emitting Done after it makes the view model
+                    // treat the stream as an empty successful response and overwrite the
+                    // useful error message.
+                    if (!streamErrored) trySend(ChatStreamEvent.Done)
                 }
             } catch (e: IOException) {
+                streamErrored = true
+                Log.w(TAG, "Chat request failed", e)
                 trySend(ChatStreamEvent.Error(e.message ?: "Network error"))
+            } catch (e: Exception) {
+                streamErrored = true
+                Log.e(TAG, "Chat stream processing failed", e)
+                trySend(ChatStreamEvent.Error(e.message ?: "Could not process the chat response"))
             } finally {
                 close()
             }
@@ -281,6 +306,7 @@ class ChatApi(private val client: OkHttpClient) {
     }
 
     private companion object {
+        const val TAG = "RofiantChat"
         const val TITLE_MODEL = "openai/gpt-oss-20b"
         const val TITLE_SYSTEM_PROMPT = "Generate a short, specific title (3-6 words, no quotes, " +
             "no trailing punctuation) that summarizes what the user wants. Reply with only the title, nothing else."

@@ -16,6 +16,8 @@ import ca.rofiant.app.data.remote.ChatRequestMessage
 import ca.rofiant.app.data.remote.ChatStreamEvent
 import ca.rofiant.app.data.remote.stripThinkTags
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -40,6 +42,7 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
 
     private val _conversations = MutableStateFlow<List<Conversation>>(emptyList())
     val conversations: StateFlow<List<Conversation>> = _conversations.asStateFlow()
+    private var localHistoryHydrated = false
 
     private val _linkedDevices = MutableStateFlow<List<LinkedDevice>>(emptyList())
     val linkedDevices: StateFlow<List<LinkedDevice>> = _linkedDevices.asStateFlow()
@@ -61,6 +64,8 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
     val authError: StateFlow<String?> = _authError.asStateFlow()
 
     private var streamJob: Job? = null
+    private var streamingConversationId: String? = null
+    private val cloudSyncMutex = Mutex()
     private val _isStreaming = MutableStateFlow(false)
     val isStreaming: StateFlow<Boolean> = _isStreaming.asStateFlow()
 
@@ -74,8 +79,15 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
         }
         viewModelScope.launch {
             conversationsRepo.conversations.collectLatest { loaded ->
-                _conversations.value = loaded
-                if (_activeId.value == null) _activeId.value = loaded.firstOrNull()?.id
+                // The repository emits again after every asynchronous save. Applying those
+                // delayed snapshots after the UI has started a stream replaces its in-memory
+                // assistant placeholder/deltas with the older user-only conversation.
+                // Hydrate once; all subsequent mutations originate here and are persisted.
+                if (!localHistoryHydrated) {
+                    _conversations.value = loaded
+                    if (_activeId.value == null) _activeId.value = loaded.firstOrNull()?.id
+                    localHistoryHydrated = true
+                }
             }
         }
     }
@@ -85,7 +97,11 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
         if (conversationsRepo.conversations.first().isNotEmpty()) return
         val token = authRepo.validAccessToken() ?: return
         val pulled = runCatching { container.chatSyncApi.pullConversations(token) }.getOrNull()
-        if (!pulled.isNullOrEmpty()) conversationsRepo.save(pulled)
+        if (!pulled.isNullOrEmpty()) {
+            _conversations.value = pulled
+            if (_activeId.value == null) _activeId.value = pulled.first().id
+            conversationsRepo.save(pulled)
+        }
     }
 
     fun selectConversation(id: String) {
@@ -110,7 +126,7 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     fun clearAllConversations() {
-        streamJob?.cancel()
+        stopStreaming()
         _conversations.value = emptyList()
         _activeId.value = null
         persist()
@@ -122,10 +138,12 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     fun stopStreaming() {
+        val conversationId = streamingConversationId
         streamJob?.cancel()
         streamJob = null
+        streamingConversationId = null
         _isStreaming.value = false
-        updateActive { it.copy(status = ConversationStatus.idle) }
+        if (conversationId != null) updateConversation(conversationId) { it.copy(status = ConversationStatus.idle) }
     }
 
     fun sendMessage(text: String, imageDataUrl: String? = null) {
@@ -197,16 +215,20 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     private fun runGeneration(conversationId: String) {
-        streamJob?.cancel()
+        stopStreaming()
+        streamingConversationId = conversationId
         streamJob = viewModelScope.launch {
             _isStreaming.value = true
             updateConversation(conversationId) { it.copy(status = ConversationStatus.running) }
 
-            val token = authRepo.validAccessToken()
+            val token = try {
+                authRepo.validAccessToken()
+            } catch (e: Exception) {
+                failGeneration(conversationId, e.message ?: "Could not validate your session")
+                return@launch
+            }
             if (token == null) {
-                _errorMessage.value = "Sign in to send messages."
-                updateConversation(conversationId) { it.copy(status = ConversationStatus.idle) }
-                _isStreaming.value = false
+                failGeneration(conversationId, "Sign in to send messages.")
                 return@launch
             }
 
@@ -243,14 +265,15 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
 
             val edgeFunction = ChatModels.byId(s.model)?.edgeFunction ?: "groq-proxy"
 
-            container.chatApi.streamChat(
-                accessToken = token,
-                model = s.model,
-                messages = requestMessages,
-                reasoningEffort = s.reasoningEffort,
-                edgeFunction = edgeFunction,
-            ).collect { event ->
-                when (event) {
+            try {
+                container.chatApi.streamChat(
+                    accessToken = token,
+                    model = s.model,
+                    messages = requestMessages,
+                    reasoningEffort = s.reasoningEffort,
+                    edgeFunction = edgeFunction,
+                ).collect { event ->
+                    when (event) {
                     is ChatStreamEvent.Delta -> {
                         buffer.append(event.text)
                         val clean = stripThinkTags(buffer.toString())
@@ -288,6 +311,18 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
                         persist()
                         syncPush(conversationId)
                     }
+                    }
+                }
+            } finally {
+                // Cancellation (clear history, retry, or a new generation) does not deliver
+                // a Done event, so always release the composer and clear a stale running state.
+                if (streamingConversationId == conversationId) {
+                    updateConversation(conversationId) { conversation ->
+                        if (conversation.status == ConversationStatus.running) conversation.copy(status = ConversationStatus.idle) else conversation
+                    }
+                    streamJob = null
+                    streamingConversationId = null
+                    _isStreaming.value = false
                 }
             }
         }
@@ -424,6 +459,25 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
         updateConversation(id, transform)
     }
 
+    /** Makes failures before ChatApi starts visible in the conversation, not only as a transient snackbar. */
+    private fun failGeneration(conversationId: String, message: String) {
+        updateConversation(conversationId) { conversation ->
+            conversation.copy(
+                status = ConversationStatus.idle,
+                messages = conversation.messages + ChatMessage(
+                    id = UUID.randomUUID().toString(),
+                    role = Role.assistant,
+                    content = message,
+                    createdAt = System.currentTimeMillis(),
+                    error = true,
+                ),
+            )
+        }
+        _errorMessage.value = message
+        persist()
+        syncPush(conversationId)
+    }
+
     private fun updateConversation(id: String, transform: (Conversation) -> Conversation) {
         _conversations.value = _conversations.value.map { if (it.id == id) transform(it) else it }
     }
@@ -442,18 +496,24 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
     // silently since the local DataStore save via persist() is the source of
     // truth the rest of the app relies on.
     private fun syncPush(conversationId: String) {
+        val conversation = _conversations.value.find { it.id == conversationId } ?: return
         viewModelScope.launch {
             val userId = (authState.value as? AuthState.SignedIn)?.session?.user?.id ?: return@launch
             val token = authRepo.validAccessToken() ?: return@launch
-            val conversation = _conversations.value.find { it.id == conversationId } ?: return@launch
-            runCatching { container.chatSyncApi.pushConversation(token, userId, conversation) }
+            // A push replaces all messages remotely, so concurrent snapshots could otherwise
+            // delete or overwrite each other. Serialize every cloud mutation.
+            cloudSyncMutex.withLock {
+                runCatching { container.chatSyncApi.pushConversation(token, userId, conversation) }
+            }
         }
     }
 
     private fun syncDelete(conversationId: String) {
         viewModelScope.launch {
             val token = authRepo.validAccessToken() ?: return@launch
-            runCatching { container.chatSyncApi.deleteConversation(token, conversationId) }
+            cloudSyncMutex.withLock {
+                runCatching { container.chatSyncApi.deleteConversation(token, conversationId) }
+            }
         }
     }
 
@@ -461,7 +521,9 @@ class AppViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch {
             val userId = (authState.value as? AuthState.SignedIn)?.session?.user?.id ?: return@launch
             val token = authRepo.validAccessToken() ?: return@launch
-            runCatching { container.chatSyncApi.deleteAllConversations(token, userId) }
+            cloudSyncMutex.withLock {
+                runCatching { container.chatSyncApi.deleteAllConversations(token, userId) }
+            }
         }
     }
 

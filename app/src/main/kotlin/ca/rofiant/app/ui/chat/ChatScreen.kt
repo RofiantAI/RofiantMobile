@@ -173,11 +173,7 @@ fun ChatScreen(
                 onToggleRecording = ::toggleRecording,
                 showEffort = ChatModels.byId(settings.model)?.supportsEffort == true,
                 effort = settings.reasoningEffort,
-                onCycleEffort = {
-                    val levels = ChatModels.EFFORT_LEVELS
-                    val next = levels[(levels.indexOf(settings.reasoningEffort) + 1) % levels.size]
-                    viewModel.setEffort(next)
-                },
+                onEffortSelected = viewModel::setEffort,
             )
         },
     ) { padding ->
@@ -229,4 +225,3 @@ private fun EmptyState(modifier: Modifier = Modifier) {
         )
     }
 }
-

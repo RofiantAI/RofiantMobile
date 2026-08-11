@@ -8,7 +8,6 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,7 +17,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -27,19 +27,26 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +59,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import ca.rofiant.app.data.local.uriToImageDataUrl
 import ca.rofiant.app.data.model.ChatModels
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 // Single-row pill, like the ChatGPT app's composer: "+" to attach an image
 // (real feature — the vision model accepts it, same as rofiant-desktop),
@@ -75,12 +84,15 @@ fun Composer(
     onToggleRecording: () -> Unit,
     showEffort: Boolean,
     effort: String,
-    onCycleEffort: () -> Unit,
+    onEffortSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) onImagePicked(uriToImageDataUrl(context, uri))
+        if (uri != null) {
+            scope.launch { onImagePicked(uriToImageDataUrl(context, uri)) }
+        }
     }
 
     Surface(
@@ -131,11 +143,15 @@ fun Composer(
                             disabledIndicatorColor = Color.Transparent,
                         ),
                     )
+                    if (showEffort) {
+                        EffortPicker(
+                            effort = effort,
+                            enabled = enabled && !isStreaming,
+                            onEffortSelected = onEffortSelected,
+                        )
+                    }
                 }
 
-                if (showEffort) {
-                    EffortButton(effort = effort, enabled = enabled, onClick = onCycleEffort)
-                }
                 MicButton(
                     enabled = enabled && !isStreaming,
                     isRecording = isRecording,
@@ -190,31 +206,76 @@ private fun ImagePreviewChip(dataUrl: String, onRemove: () -> Unit) {
     }
 }
 
-// Compact bar-graph "slider": tapping cycles low -> medium -> high -> low,
-// same three ChatModels.EFFORT_LEVELS the Settings > Model sheet uses, just
-// reachable without leaving the composer for models that support it.
+// A compact effort button opens the three-stop thinking-time slider, keeping
+// the composer quiet until the user explicitly wants to tune reasoning depth.
 @Composable
-private fun EffortButton(effort: String, enabled: Boolean, onClick: () -> Unit) {
-    val level = (ChatModels.EFFORT_LEVELS.indexOf(effort) + 1).coerceIn(1, ChatModels.EFFORT_LEVELS.size)
-    IconButton(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = Modifier.padding(bottom = 4.dp).semantics {
-            contentDescription = "Reasoning effort: ${effort.replaceFirstChar { it.uppercase() }}. Tap to change."
-        },
-    ) {
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            for (bar in 1..3) {
-                Box(
-                    modifier = Modifier
-                        .width(4.dp)
-                        .height((6 + bar * 4).dp)
-                        .clip(RoundedCornerShape(1.dp))
-                        .background(
-                            if (bar <= level) MaterialTheme.colorScheme.onSurfaceVariant
-                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f),
-                        ),
+private fun EffortPicker(effort: String, enabled: Boolean, onEffortSelected: (String) -> Unit) {
+    val selectedIndex = ChatModels.EFFORT_LEVELS.indexOf(effort).coerceAtLeast(0)
+    var sliderValue by remember(effort) { mutableStateOf(selectedIndex.toFloat()) }
+    var expanded by remember { mutableStateOf(false) }
+    Box(modifier = Modifier.padding(start = 4.dp, top = 2.dp, bottom = 2.dp)) {
+        TextButton(
+            onClick = { expanded = true },
+            enabled = enabled,
+            modifier = Modifier.semantics {
+                contentDescription = "Thinking effort: ${effort.replaceFirstChar { it.uppercase() }}. Open effort slider."
+            },
+        ) {
+            Icon(
+                Icons.Filled.Psychology,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "Thinking",
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(start = 6.dp),
+            )
+            Text(
+                text = effort.replaceFirstChar { it.uppercase() },
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 6.dp),
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.widthIn(min = 264.dp, max = 300.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                Text("Thinking effort", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    effort.replaceFirstChar { it.uppercase() },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 2.dp),
                 )
+                Slider(
+                    value = sliderValue,
+                    onValueChange = { value ->
+                        sliderValue = value
+                        val selected = ChatModels.EFFORT_LEVELS[value.roundToInt().coerceIn(0, ChatModels.EFFORT_LEVELS.lastIndex)]
+                        if (selected != effort) onEffortSelected(selected)
+                    },
+                    valueRange = 0f..2f,
+                    steps = 1,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .semantics { contentDescription = "Thinking effort slider. ${effort.replaceFirstChar { it.uppercase() }} selected." },
+                )
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Text("Low", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "High",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f).wrapContentWidth(Alignment.End),
+                    )
+                }
             }
         }
     }
