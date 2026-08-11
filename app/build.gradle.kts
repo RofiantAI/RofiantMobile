@@ -25,6 +25,18 @@ android {
         versionName = "1.0"
     }
 
+    // Checked-in (not a secret — debug keystores are meant to be shared) so every
+    // CI build is signed identically, letting Obtainium install each new build
+    // as an update instead of Android rejecting it over a signature mismatch.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true

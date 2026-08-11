@@ -23,3 +23,5 @@ local.properties
 *.keystore
 *.jks
 keystore.properties
+# debug.keystore is checked in on purpose — see build.gradle.kts signingConfigs.debug.
+!/debug.keystore
