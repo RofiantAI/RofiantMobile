@@ -1,0 +1,13 @@
+R_DEF: Internal format may change without notice
+local
+color brand_background
+color ic_launcher_background
+drawable ic_google_logo
+drawable ic_rofiant_mark
+mipmap ic_launcher
+mipmap ic_launcher_foreground
+mipmap ic_launcher_round
+string app_name
+style Theme.Rofiant
+style Theme.Rofiant.Starting
+xml file_paths

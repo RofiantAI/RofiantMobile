@@ -1,0 +1,174 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="ca.rofiant.app"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+9        android:targetSdkVersion="36" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:4:5-67
+11-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:4:22-64
+12    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+12-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:5:5-79
+12-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:5:22-76
+13
+14    <permission
+14-->[androidx.core:core:1.15.0] /home/stormz/.gradle/caches/9.1.0/transforms/5d8dde601c350ff9baf5b985368ce931/transformed/core-1.15.0/AndroidManifest.xml:22:5-24:47
+15        android:name="ca.rofiant.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+15-->[androidx.core:core:1.15.0] /home/stormz/.gradle/caches/9.1.0/transforms/5d8dde601c350ff9baf5b985368ce931/transformed/core-1.15.0/AndroidManifest.xml:23:9-81
+16        android:protectionLevel="signature" />
+16-->[androidx.core:core:1.15.0] /home/stormz/.gradle/caches/9.1.0/transforms/5d8dde601c350ff9baf5b985368ce931/transformed/core-1.15.0/AndroidManifest.xml:24:9-44
+17
+18    <uses-permission android:name="ca.rofiant.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+18-->[androidx.core:core:1.15.0] /home/stormz/.gradle/caches/9.1.0/transforms/5d8dde601c350ff9baf5b985368ce931/transformed/core-1.15.0/AndroidManifest.xml:26:5-97
+18-->[androidx.core:core:1.15.0] /home/stormz/.gradle/caches/9.1.0/transforms/5d8dde601c350ff9baf5b985368ce931/transformed/core-1.15.0/AndroidManifest.xml:26:22-94
+19
+20    <application
+20-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:7:5-35:19
+21        android:name="ca.rofiant.app.RofiantApp"
+21-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:8:9-35
+22        android:allowBackup="false"
+22-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:9:9-36
+23        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+23-->[androidx.core:core:1.15.0] /home/stormz/.gradle/caches/9.1.0/transforms/5d8dde601c350ff9baf5b985368ce931/transformed/core-1.15.0/AndroidManifest.xml:28:18-86
+24        android:extractNativeLibs="false"
+25        android:icon="@mipmap/ic_launcher"
+25-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:10:9-43
+26        android:label="@string/app_name"
+26-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:12:9-41
+27        android:roundIcon="@mipmap/ic_launcher_round"
+27-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:11:9-54
+28        android:supportsRtl="true"
+28-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:14:9-35
+29        android:theme="@style/Theme.Rofiant" >
+29-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:13:9-45
+30        <activity
+30-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:16:9-34:20
+31            android:name="ca.rofiant.app.MainActivity"
+31-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:17:13-41
+32            android:exported="true"
+32-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:18:13-36
+33            android:launchMode="singleTask"
+33-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:21:13-44
+34            android:theme="@style/Theme.Rofiant"
+34-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:19:13-49
+35            android:windowSoftInputMode="adjustResize" >
+35-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:20:13-55
+36            <intent-filter>
+36-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:22:13-25:29
+37                <action android:name="android.intent.action.MAIN" />
+37-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:23:17-69
+37-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:23:25-66
+38
+39                <category android:name="android.intent.category.LAUNCHER" />
+39-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:24:17-77
+39-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:24:27-74
+40            </intent-filter>
+41
+42            <!-- OAuth / signup redirect target, matches AUTH_REDIRECT_URL used by rofiant-desktop -->
+43            <intent-filter android:autoVerify="false" >
+43-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:28:13-33:29
+43-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:28:28-54
+44                <action android:name="android.intent.action.VIEW" />
+44-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:29:17-69
+44-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:29:25-66
+45
+46                <category android:name="android.intent.category.DEFAULT" />
+46-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:30:17-76
+46-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:30:27-73
+47                <category android:name="android.intent.category.BROWSABLE" />
+47-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:31:17-78
+47-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:31:27-75
+48
+49                <data
+49-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:32:17-79
+50                    android:host="auth-callback"
+50-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:32:48-76
+51                    android:scheme="rofiant" />
+51-->/home/stormz/Desktop/rofiant-mobile/app/src/main/AndroidManifest.xml:32:23-47
+52            </intent-filter>
+53        </activity>
+54
+55        <provider
+55-->[io.github.jan-tennert.supabase:auth-kt-android:3.0.3] /home/stormz/.gradle/caches/9.1.0/transforms/f61f9f7f42e9f97056d9bd9c567ab1f6/transformed/auth-kt-release/AndroidManifest.xml:9:9-17:20
+56            android:name="androidx.startup.InitializationProvider"
+56-->[io.github.jan-tennert.supabase:auth-kt-android:3.0.3] /home/stormz/.gradle/caches/9.1.0/transforms/f61f9f7f42e9f97056d9bd9c567ab1f6/transformed/auth-kt-release/AndroidManifest.xml:10:13-67
+57            android:authorities="ca.rofiant.app.androidx-startup"
+57-->[io.github.jan-tennert.supabase:auth-kt-android:3.0.3] /home/stormz/.gradle/caches/9.1.0/transforms/f61f9f7f42e9f97056d9bd9c567ab1f6/transformed/auth-kt-release/AndroidManifest.xml:11:13-68
+58            android:exported="false" >
+58-->[io.github.jan-tennert.supabase:auth-kt-android:3.0.3] /home/stormz/.gradle/caches/9.1.0/transforms/f61f9f7f42e9f97056d9bd9c567ab1f6/transformed/auth-kt-release/AndroidManifest.xml:12:13-37
+59            <meta-data
+59-->[io.github.jan-tennert.supabase:auth-kt-android:3.0.3] /home/stormz/.gradle/caches/9.1.0/transforms/f61f9f7f42e9f97056d9bd9c567ab1f6/transformed/auth-kt-release/AndroidManifest.xml:14:13-16:52
+60                android:name="io.github.jan.supabase.auth.SupabaseInitializer"
+60-->[io.github.jan-tennert.supabase:auth-kt-android:3.0.3] /home/stormz/.gradle/caches/9.1.0/transforms/f61f9f7f42e9f97056d9bd9c567ab1f6/transformed/auth-kt-release/AndroidManifest.xml:15:17-79
+61                android:value="androidx.startup" />
+61-->[io.github.jan-tennert.supabase:auth-kt-android:3.0.3] /home/stormz/.gradle/caches/9.1.0/transforms/f61f9f7f42e9f97056d9bd9c567ab1f6/transformed/auth-kt-release/AndroidManifest.xml:16:17-49
+62            <meta-data
+62-->[androidx.emoji2:emoji2:1.3.0] /home/stormz/.gradle/caches/9.1.0/transforms/faf7891337da4548a1b578ed90737819/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+63                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+63-->[androidx.emoji2:emoji2:1.3.0] /home/stormz/.gradle/caches/9.1.0/transforms/faf7891337da4548a1b578ed90737819/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+64                android:value="androidx.startup" />
+64-->[androidx.emoji2:emoji2:1.3.0] /home/stormz/.gradle/caches/9.1.0/transforms/faf7891337da4548a1b578ed90737819/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+65            <meta-data
+65-->[androidx.lifecycle:lifecycle-process:2.8.7] /home/stormz/.gradle/caches/9.1.0/transforms/bd02d443f0e73418e938c5bad2910276/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:29:13-31:52
+66                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+66-->[androidx.lifecycle:lifecycle-process:2.8.7] /home/stormz/.gradle/caches/9.1.0/transforms/bd02d443f0e73418e938c5bad2910276/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:30:17-78
+67                android:value="androidx.startup" />
+67-->[androidx.lifecycle:lifecycle-process:2.8.7] /home/stormz/.gradle/caches/9.1.0/transforms/bd02d443f0e73418e938c5bad2910276/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:31:17-49
+68            <meta-data
+68-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+69                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+69-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+70                android:value="androidx.startup" />
+70-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+71            <meta-data
+71-->[com.russhwolf:multiplatform-settings-no-arg-android:1.3.0] /home/stormz/.gradle/caches/9.1.0/transforms/597f9a9cb6803f74b7b4df69108eb9bb/transformed/multiplatform-settings-no-arg-release/AndroidManifest.xml:29:13-31:52
+72                android:name="com.russhwolf.settings.SettingsInitializer"
+72-->[com.russhwolf:multiplatform-settings-no-arg-android:1.3.0] /home/stormz/.gradle/caches/9.1.0/transforms/597f9a9cb6803f74b7b4df69108eb9bb/transformed/multiplatform-settings-no-arg-release/AndroidManifest.xml:30:17-74
+73                android:value="androidx.startup" />
+73-->[com.russhwolf:multiplatform-settings-no-arg-android:1.3.0] /home/stormz/.gradle/caches/9.1.0/transforms/597f9a9cb6803f74b7b4df69108eb9bb/transformed/multiplatform-settings-no-arg-release/AndroidManifest.xml:31:17-49
+74        </provider>
+75
+76        <receiver
+76-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+77            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+77-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+78            android:directBootAware="false"
+78-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+79            android:enabled="true"
+79-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+80            android:exported="true"
+80-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+81            android:permission="android.permission.DUMP" >
+81-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+82            <intent-filter>
+82-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+83                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+83-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+83-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+84            </intent-filter>
+85            <intent-filter>
+85-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+86                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+86-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+86-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+87            </intent-filter>
+88            <intent-filter>
+88-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+89                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+89-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+89-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+90            </intent-filter>
+91            <intent-filter>
+91-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+92                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+92-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+92-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/stormz/.gradle/caches/9.1.0/transforms/7c748339446bfc026bd8ce8afcc7ff7c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+93            </intent-filter>
+94        </receiver>
+95    </application>
+96
+97</manifest>

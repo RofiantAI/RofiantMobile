@@ -1,0 +1,62 @@
+{
+    "logs": [
+        {
+            "outputFile": "ca.rofiant.app-mergeDebugResources-62:/values-night-v8/values-night-v8.xml",
+            "map": [
+                {
+                    "source": "/home/stormz/Desktop/rofiant-mobile/app/src/main/res/values-night/colors.xml",
+                    "from": {
+                        "startLines": "1",
+                        "startColumns": "4",
+                        "startOffsets": "16",
+                        "endColumns": "50",
+                        "endOffsets": "62"
+                    },
+                    "to": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "100",
+                        "endColumns": "50",
+                        "endOffsets": "146"
+                    }
+                },
+                {
+                    "source": "/home/stormz/Desktop/rofiant-mobile/app/src/main/res/values-night/themes.xml",
+                    "from": {
+                        "startLines": "1,9",
+                        "startColumns": "4,4",
+                        "startOffsets": "63,539",
+                        "endLines": "7,13",
+                        "endColumns": "12,12",
+                        "endOffsets": "533,854"
+                    },
+                    "to": {
+                        "startLines": "4,11",
+                        "startColumns": "4,4",
+                        "startOffsets": "237,710",
+                        "endLines": "10,15",
+                        "endColumns": "12,12",
+                        "endOffsets": "705,1025"
+                    }
+                },
+                {
+                    "source": "/home/stormz/.gradle/caches/9.1.0/transforms/5ebf057ffaa858f0be370c4eb0818159/transformed/core-splashscreen-1.0.1/res/values-night-v8/values-night-v8.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "85",
+                        "endOffsets": "136"
+                    },
+                    "to": {
+                        "startLines": "3",
+                        "startColumns": "4",
+                        "startOffsets": "151",
+                        "endColumns": "85",
+                        "endOffsets": "232"
+                    }
+                }
+            ]
+        }
+    ]
+}

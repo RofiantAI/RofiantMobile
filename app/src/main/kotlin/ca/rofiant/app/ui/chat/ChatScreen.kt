@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -23,6 +26,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -179,7 +183,13 @@ fun ChatScreen(
     ) { padding ->
         val messages = conversation?.messages.orEmpty()
         if (messages.isEmpty()) {
-            EmptyState(modifier = Modifier.fillMaxSize().padding(padding))
+            EmptyState(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                enabled = canSend && isOnline,
+                onPromptSelected = { prompt ->
+                    viewModel.sendMessage(prompt, null)
+                },
+            )
         } else {
             LazyColumn(
                 state = listState,
@@ -215,13 +225,54 @@ private fun OfflineBanner() {
 }
 
 @Composable
-private fun EmptyState(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.padding(horizontal = 32.dp), contentAlignment = Alignment.Center) {
-        Text(
-            "What can I help with?",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+private fun EmptyState(
+    enabled: Boolean,
+    onPromptSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val prompts = listOf(
+        "Help me plan my day",
+        "Explain something clearly",
+        "Brainstorm ideas with me",
+    )
+    Box(modifier = modifier.padding(horizontal = 24.dp), contentAlignment = Alignment.Center) {
+        Column(
+            modifier = Modifier.widthIn(max = 420.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                Icons.Filled.AutoAwesome,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                "What can I help with?",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+            Text(
+                "Start with an idea, a question, or one of these prompts.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 6.dp),
+            )
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                prompts.forEach { prompt ->
+                    OutlinedButton(
+                        onClick = { onPromptSelected(prompt) },
+                        enabled = enabled,
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(prompt)
+                    }
+                }
+            }
+        }
     }
 }

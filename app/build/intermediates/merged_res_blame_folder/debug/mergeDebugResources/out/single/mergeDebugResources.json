@@ -1,0 +1,82 @@
+[
+    {
+        "merged": "ca.rofiant.app-debug-64:/drawable_ic_google_logo.xml.flat",
+        "source": "ca.rofiant.app-main-66:/drawable/ic_google_logo.xml"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-xxxhdpi_ic_launcher_foreground.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-xxxhdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-mdpi_ic_launcher_round.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-mdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-xhdpi_ic_launcher_foreground.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-xhdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-xxxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/drawable_ic_rofiant_mark.xml.flat",
+        "source": "ca.rofiant.app-main-66:/drawable/ic_rofiant_mark.xml"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-hdpi_ic_launcher_round.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-hdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-hdpi_ic_launcher_foreground.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-hdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-mdpi_ic_launcher_foreground.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-mdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-xxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-hdpi/ic_launcher.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-xxhdpi_ic_launcher_foreground.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-xxhdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-xhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/xml_file_paths.xml.flat",
+        "source": "ca.rofiant.app-main-66:/xml/file_paths.xml"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-xxhdpi_ic_launcher_round.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-xxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-xhdpi_ic_launcher_round.png.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-xhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "ca.rofiant.app-debug-64:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "ca.rofiant.app-main-66:/mipmap-anydpi-v26/ic_launcher.xml"
+    }
+]

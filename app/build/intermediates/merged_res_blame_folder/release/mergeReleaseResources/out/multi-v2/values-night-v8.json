@@ -1,0 +1,45 @@
+{
+    "logs": [
+        {
+            "outputFile": "ca.rofiant.app-mergeReleaseResources-53:/values-night-v8/values-night-v8.xml",
+            "map": [
+                {
+                    "source": "/home/stormz/Desktop/rofiant-mobile/app/src/main/res/values-night/colors.xml",
+                    "from": {
+                        "startLines": "1",
+                        "startColumns": "4",
+                        "startOffsets": "16",
+                        "endColumns": "50",
+                        "endOffsets": "62"
+                    },
+                    "to": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "100",
+                        "endColumns": "50",
+                        "endOffsets": "146"
+                    }
+                },
+                {
+                    "source": "/home/stormz/Desktop/rofiant-mobile/app/src/main/res/values-night/themes.xml",
+                    "from": {
+                        "startLines": "1",
+                        "startColumns": "4",
+                        "startOffsets": "63",
+                        "endLines": "7",
+                        "endColumns": "12",
+                        "endOffsets": "533"
+                    },
+                    "to": {
+                        "startLines": "3",
+                        "startColumns": "4",
+                        "startOffsets": "151",
+                        "endLines": "9",
+                        "endColumns": "12",
+                        "endOffsets": "619"
+                    }
+                }
+            ]
+        }
+    ]
+}

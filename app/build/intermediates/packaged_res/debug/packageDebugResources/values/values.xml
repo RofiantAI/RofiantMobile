@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="http://schemas.android.com/tools">
+    <color name="brand_background">#FAF9F8</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
+    <string name="app_name">Rofiant</string>
+    <style name="Theme.Rofiant" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/brand_background</item>
+        <item name="android:statusBarColor">@color/brand_background</item>
+        <item name="android:navigationBarColor">@color/brand_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" ns1:targetApi="o_mr1">true</item>
+    </style>
+    <style name="Theme.Rofiant.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brand_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_rofiant_mark</item>
+        <item name="postSplashScreenTheme">@style/Theme.Rofiant</item>
+    </style>
+</resources>

@@ -8,6 +8,8 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -56,6 +58,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import ca.rofiant.app.data.local.uriToImageDataUrl
 import ca.rofiant.app.data.model.ChatModels
@@ -94,6 +97,7 @@ fun Composer(
             scope.launch { onImagePicked(uriToImageDataUrl(context, uri)) }
         }
     }
+    val hasDraft = text.isNotBlank() || pendingImageDataUrl != null
 
     Surface(
         modifier = modifier.fillMaxWidth().navigationBarsPadding().imePadding(),
@@ -134,6 +138,10 @@ fun Composer(
                         enabled = enabled,
                         maxLines = 6,
                         textStyle = MaterialTheme.typography.bodyLarge,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                        keyboardActions = KeyboardActions(
+                            onSend = { if (enabled && hasDraft && !isStreaming) onSend() },
+                        ),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
@@ -160,7 +168,7 @@ fun Composer(
                     onToggle = onToggleRecording,
                 )
                 SendButton(
-                    hasText = text.isNotBlank() || pendingImageDataUrl != null,
+                    hasText = hasDraft,
                     isStreaming = isStreaming,
                     enabled = enabled,
                     onSend = onSend,
